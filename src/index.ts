@@ -55,7 +55,12 @@ const rules: any = {
 }
 
 const extractCode = text => {
-    return text.split('```javascript')[1].split('```')[0]
+    try {
+        return text.split('```javascript')[1].split('```')[0]
+    } catch (e) {
+        return text;
+    }
+
 }
 
 app.post('/api/v1/test-coverage', async (req: any, res: any) => {
@@ -64,13 +69,14 @@ app.post('/api/v1/test-coverage', async (req: any, res: any) => {
 
         const completion = await openai.createChatCompletion({
             model: "gpt-3.5-turbo",
-            messages: [{ role: 'user', content: encodeURIComponent(content) + ( rules[rulesType] as string)}],
+            messages: [{ role: 'user', content: Buffer.from(content, "utf-8").toString() + ( rules[rulesType] as string)}],
         });
 
         writeFileSync("counter.txt", String(Number(String(readFileSync("counter.txt"))) + 1));
 
         return res.send({content: extractCode(completion.data.choices[0].message.content)})
     } catch (e: any) {
+        console.log('err', e)
         return res.send({content: 'Oooops. Try one more time.'});
     }
 });
