@@ -1,5 +1,4 @@
 import express, { Express } from 'express';
-import {writeFileSync, readFileSync} from 'fs';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { Configuration, OpenAIApi } from "openai";
@@ -55,6 +54,7 @@ const rules: any = {
 }
 
 const extractCode = text => {
+    console.log('text', text);
     try {
         return text.split('```javascript')[1].split('```')[0]
     } catch (e) {
@@ -71,8 +71,6 @@ app.post('/api/v1/test-coverage', async (req: any, res: any) => {
             model: "gpt-3.5-turbo",
             messages: [{ role: 'user', content: Buffer.from(content, "utf-8").toString() + ( rules[rulesType] as string)}],
         });
-
-        writeFileSync("counter.txt", String(Number(String(readFileSync("counter.txt"))) + 1));
 
         return res.send({content: extractCode(completion.data.choices[0].message.content)})
     } catch (e: any) {
